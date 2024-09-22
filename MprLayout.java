@@ -1,29 +1,35 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ModernTaskManagerUI extends JFrame {
+public class MprLayout extends JFrame {
 
     private JPanel mainContentPanel;
-    private JPanel homePanel, leaderboardPanel, tipsPanel;
+    private JPanel homePanel, leaderboardPanel, tipsPanel, tasksPanel;
     private JLabel pointsLabel;
     private int points = 0;
+    private List<JPanel> easyTasks, mediumTasks, hardTasks;
+    private JScrollPane tasksScrollPane;
+    private JComboBox<String> difficultyDropdown;
+    private JPanel taskDisplayPanel;
 
-    public ModernTaskManagerUI() {
+    public MprLayout() {
         initUI();
     }
 
     private void initUI() {
         // Main layout for the frame
         setLayout(new BorderLayout());
+        setSize(800, 600);
 
         // Create a side navigation panel
         JPanel sideNavPanel = new JPanel();
         sideNavPanel.setLayout(new GridLayout(4, 1));
         sideNavPanel.setBackground(new Color(30, 70, 30));
-        sideNavPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        sideNavPanel.setBorder(new EmptyBorder(7, 7, 7, 7));
+        sideNavPanel.setPreferredSize(new Dimension(120, getHeight()));
         add(sideNavPanel, BorderLayout.WEST);
 
         // Side navigation buttons
@@ -49,30 +55,25 @@ public class ModernTaskManagerUI extends JFrame {
         homePanel.setBackground(Color.LIGHT_GRAY);
 
         // Panel to hold tasks
-        JPanel tasksPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        tasksPanel = new JPanel(new BorderLayout());
         tasksPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         tasksPanel.setBackground(new Color(245, 245, 245));
 
         // Create a JScrollPane for the tasks panel
-        JScrollPane tasksScrollPane = new JScrollPane(tasksPanel);
+        tasksScrollPane = new JScrollPane();
         tasksScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         tasksScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         tasksScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        
 
-        // Add more tasks
-        createTaskCard("Use less water for a week", "+20 points", tasksPanel);
-        createTaskCard("Plant a tree", "+50 points", tasksPanel);
-        createTaskCard("Use public transport", "+15 points", tasksPanel);
-        createTaskCard("Walk 8,000 steps daily", "+50 points", tasksPanel);
-        createTaskCard("Maintain the planted tree", "+30 points", tasksPanel);
-        createTaskCard("Help an animal", "+50 points", tasksPanel);
-        createTaskCard("Clean your area", "+50 points", tasksPanel);
-        createTaskCard("Feed someone in need", "+50 points", tasksPanel);
-        createTaskCard("Beat a beggar", "+50 points", tasksPanel);
-        createTaskCard("Litter your society", "+50 points", tasksPanel);
-        createTaskCard("Corruption is the only religion.", "+50 points", tasksPanel);
+        // Inner task display panel with BoxLayout for vertical task layout
+        taskDisplayPanel = new JPanel();
+        taskDisplayPanel.setLayout(new BoxLayout(taskDisplayPanel, BoxLayout.Y_AXIS));  // For vertical task layout
+        tasksScrollPane.setViewportView(taskDisplayPanel); // Set taskDisplayPanel inside the JScrollPane
 
+        // Add the task panel to the center of the tasksPanel
+        tasksPanel.add(tasksScrollPane, BorderLayout.CENTER);
+
+        // Leaderboard and tips panel
         leaderboardPanel = new JPanel();
         leaderboardPanel.add(new JLabel("Leaderboard Coming Soon"));
         leaderboardPanel.setBackground(Color.YELLOW);
@@ -83,7 +84,7 @@ public class ModernTaskManagerUI extends JFrame {
 
         // Add panels to the main content panel (CardLayout)
         mainContentPanel.add(homePanel, "Home");
-        mainContentPanel.add(tasksScrollPane, "Tasks");  // Use the scroll pane for tasks
+        mainContentPanel.add(tasksPanel, "Tasks");  // Use the scroll pane for tasks
         mainContentPanel.add(leaderboardPanel, "Leaderboard");
         mainContentPanel.add(tipsPanel, "Tips");
 
@@ -97,7 +98,8 @@ public class ModernTaskManagerUI extends JFrame {
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
         bottomPanel.setBackground(new Color(240, 240, 240));
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        bottomPanel.setPreferredSize(new Dimension(getWidth(), 30));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
         // Points label
         pointsLabel = new JLabel("Total Points: 0");
@@ -112,6 +114,36 @@ public class ModernTaskManagerUI extends JFrame {
         setSize(800, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Initialize task categories
+        easyTasks = new ArrayList<>();
+        mediumTasks = new ArrayList<>();
+        hardTasks = new ArrayList<>();
+
+        // Add tasks
+        addTask("Use less water for a week", "+20 points", "Easy");
+        addTask("Plant a tree", "+50 points", "Medium");
+        addTask("Use public transport", "+15 points", "Easy");
+        addTask("Walk 8,000 steps daily", "+50 points", "Hard");
+        addTask("Maintain the planted tree", "+30 points", "Medium");
+        addTask("Help an animal", "+50 points", "Hard");
+
+        // Add difficulty dropdown
+        JPanel difficultyPanel = new JPanel();
+        String[] difficultyLevels = {"Easy", "Medium", "Hard"};
+        difficultyDropdown = new JComboBox<>(difficultyLevels);
+        difficultyPanel.add(new JLabel("Select Difficulty: "));
+        difficultyPanel.add(difficultyDropdown);
+        tasksPanel.add(difficultyPanel, BorderLayout.NORTH); // Add dropdown at the top of tasksPanel
+
+        // Add action listener for dropdown
+        difficultyDropdown.addActionListener(e -> {
+            String selectedDifficulty = (String) difficultyDropdown.getSelectedItem();
+            showTasksByDifficulty(selectedDifficulty);
+        });
+
+        // Show the default (easy) tasks on entering the task panel
+        showTasksByDifficulty("Easy");
     }
 
     private void switchPanel(String panelName) {
@@ -119,9 +151,9 @@ public class ModernTaskManagerUI extends JFrame {
         cl.show(mainContentPanel, panelName);
     }
 
-    private void createTaskCard(String taskTitle, String pointsText, JPanel parentPanel) {
+    private void addTask(String taskTitle, String pointsText, String difficulty) {
         JPanel taskCard = new JPanel();
-        taskCard.setLayout(new BoxLayout(taskCard, BoxLayout.Y_AXIS));
+        taskCard.setLayout(new BoxLayout(taskCard, BoxLayout.Y_AXIS)); // Flexible layout
         taskCard.setBackground(Color.WHITE);
         taskCard.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 2));
 
@@ -144,15 +176,44 @@ public class ModernTaskManagerUI extends JFrame {
         completeButton.setFocusPainted(false);
         completeButton.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        completeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                completeTask(taskCard, pointsText);
-            }
-        });
+        completeButton.addActionListener(e -> completeTask(taskCard, pointsText));
         taskCard.add(completeButton);
 
-        parentPanel.add(taskCard);
+        // Categorize task based on difficulty
+        switch (difficulty) {
+            case "Easy":
+                easyTasks.add(taskCard);
+                break;
+            case "Medium":
+                mediumTasks.add(taskCard);
+                break;
+            case "Hard":
+                hardTasks.add(taskCard);
+                break;
+        }
+    }
+
+    private void showTasksByDifficulty(String difficulty) {
+        taskDisplayPanel.removeAll();  // Clear the current tasks
+        switch (difficulty) {
+            case "Easy":
+                for (JPanel task : easyTasks) {
+                    taskDisplayPanel.add(task);
+                }
+                break;
+            case "Medium":
+                for (JPanel task : mediumTasks) {
+                    taskDisplayPanel.add(task);
+                }
+                break;
+            case "Hard":
+                for (JPanel task : hardTasks) {
+                    taskDisplayPanel.add(task);
+                }
+                break;
+        }
+        taskDisplayPanel.revalidate();
+        taskDisplayPanel.repaint();
     }
 
     private void completeTask(JPanel taskCard, String pointsText) {
@@ -163,7 +224,7 @@ public class ModernTaskManagerUI extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            ModernTaskManagerUI ex = new ModernTaskManagerUI();
+            MprLayout ex = new MprLayout();
             ex.setVisible(true);
         });
     }
