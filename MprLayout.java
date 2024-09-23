@@ -50,30 +50,8 @@ public class MprLayout extends JFrame {
         add(mainContentPanel, BorderLayout.CENTER);
 
         // Initialize panels for each section
-        homePanel = new JPanel();
-        homePanel.add(new JLabel("Welcome to the Home"));
-        homePanel.setBackground(Color.LIGHT_GRAY);
-
-        // Panel to hold tasks
-        tasksPanel = new JPanel(new BorderLayout());
-        tasksPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        tasksPanel.setBackground(new Color(245, 245, 245));
-
-        // Create a JScrollPane for the tasks panel
-        tasksScrollPane = new JScrollPane();
-        tasksScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        tasksScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        tasksScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-
-        // Inner task display panel with BoxLayout for vertical task layout
-        taskDisplayPanel = new JPanel();
-        taskDisplayPanel.setLayout(new BoxLayout(taskDisplayPanel, BoxLayout.Y_AXIS));  // For vertical task layout
-        tasksScrollPane.setViewportView(taskDisplayPanel); // Set taskDisplayPanel inside the JScrollPane
-
-        // Add the task panel to the center of the tasksPanel
-        tasksPanel.add(tasksScrollPane, BorderLayout.CENTER);
-
-        // Leaderboard and tips panel
+        initHomePanel(); // Initialize the home panel with registration fields
+        initTasksPanel(); // Initialize the tasks panel with task display
         leaderboardPanel = new JPanel();
         leaderboardPanel.add(new JLabel("Leaderboard Coming Soon"));
         leaderboardPanel.setBackground(Color.YELLOW);
@@ -144,6 +122,95 @@ public class MprLayout extends JFrame {
 
         // Show the default (easy) tasks on entering the task panel
         showTasksByDifficulty("Easy");
+    }
+
+    private void initHomePanel() {
+        homePanel = new JPanel();
+        homePanel.setBackground(Color.LIGHT_GRAY);
+        homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
+
+        JLabel titleLabel = new JLabel("Register");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel emailLabel = new JLabel("Email");
+        emailLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JTextField emailField = new JTextField(10);
+        emailField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel userIdLabel = new JLabel("UserID");
+        userIdLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JTextField userIdField = new JTextField(10);
+        JLabel passwordLabel = new JLabel("Password");
+        passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JPasswordField passwordField = new JPasswordField(10);
+        JLabel confirmPasswordLabel = new JLabel("Confirm Password");
+        confirmPasswordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JPasswordField confirmPasswordField = new JPasswordField(10);
+        
+        emailField.setPreferredSize(new Dimension(100, 3));
+        userIdField.setPreferredSize(new Dimension(100, 25));
+        passwordField.setPreferredSize(new Dimension(100, 25));
+        confirmPasswordField.setPreferredSize(new Dimension(100, 25));
+        
+        JButton registerButton = new JButton("Register");
+        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        registerButton.addActionListener(e -> {
+            String email = emailField.getText();
+            String userId = userIdField.getText();
+            String password = new String(passwordField.getPassword());
+            String confirmPassword = new String(confirmPasswordField.getPassword());
+            
+            if (validateRegistration(email, userId, password, confirmPassword)) {
+                JOptionPane.showMessageDialog(this, "Registration Successful");
+            } else {
+                JOptionPane.showMessageDialog(this, "Error: Check your inputs");
+            }
+        });
+
+        homePanel.add(titleLabel);
+        homePanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        homePanel.add(emailLabel);
+        homePanel.add(emailField);
+        homePanel.add(userIdLabel);
+        homePanel.add(userIdField);
+        homePanel.add(passwordLabel);
+        homePanel.add(passwordField);
+        homePanel.add(confirmPasswordLabel);
+        homePanel.add(confirmPasswordField);
+        homePanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        homePanel.add(registerButton);
+    }
+
+    private boolean validateRegistration(String email, String userId, String password, String confirmPassword) {
+        // Simple validation logic for registration
+        if (email.isEmpty() || userId.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            return false;
+        }
+        if (!password.equals(confirmPassword)) {
+            return false;
+        }
+        return true;
+    }
+
+    private void initTasksPanel() {
+        tasksPanel = new JPanel(new BorderLayout());
+        tasksPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        tasksPanel.setBackground(new Color(245, 245, 245));
+
+        // Create a JScrollPane for the tasks panel
+        tasksScrollPane = new JScrollPane();
+        tasksScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        tasksScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        tasksScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        // Inner task display panel with BoxLayout for vertical task layout
+        taskDisplayPanel = new JPanel();
+        taskDisplayPanel.setLayout(new BoxLayout(taskDisplayPanel, BoxLayout.Y_AXIS));  // For vertical task layout
+        tasksScrollPane.setViewportView(taskDisplayPanel); // Set taskDisplayPanel inside the JScrollPane
+
+        // Add the task panel to the center of the tasksPanel
+        tasksPanel.add(tasksScrollPane, BorderLayout.CENTER);
     }
 
     private void switchPanel(String panelName) {
