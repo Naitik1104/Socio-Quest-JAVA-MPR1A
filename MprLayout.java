@@ -7,13 +7,26 @@ import java.util.List;
 public class MprLayout extends JFrame {
 
     private JPanel mainContentPanel;
-    private JPanel homePanel, leaderboardPanel, tipsPanel, tasksPanel;
+    private JPanel homePanel, leaderboardPanel, tipsPanel, tasksPanel, loginPanel, registerPanel;
     private JLabel pointsLabel;
     private int points = 0;
     private List<JPanel> easyTasks, mediumTasks, hardTasks;
     private JScrollPane tasksScrollPane;
     private JComboBox<String> difficultyDropdown;
     private JPanel taskDisplayPanel;
+    private CardLayout cardLayout;
+
+    // Fields for login and register components
+    private JTextField loginUsernameField;
+    private JPasswordField loginPasswordField;
+    private JTextField registerUsernameField;
+    private JPasswordField registerPasswordField;
+    private JPasswordField registerConfirmPasswordField;
+    private JTextField registerEmailField;
+
+    // Placeholder for registered user data
+    private String registeredUsername = null;
+    private String registeredPassword = null;
 
     public MprLayout() {
         initUI();
@@ -24,15 +37,144 @@ public class MprLayout extends JFrame {
         setLayout(new BorderLayout());
         setSize(800, 600);
 
-        // Create a side navigation panel
-        JPanel sideNavPanel = new JPanel();
-        sideNavPanel.setLayout(new GridLayout(4, 1));
+        // Initialize CardLayout for switching between login, register, and the main panels
+        cardLayout = new CardLayout();
+        mainContentPanel = new JPanel(cardLayout);
+        add(mainContentPanel, BorderLayout.CENTER);
+
+        // Create login, register, and main panel layout
+        createLoginPanel();
+        createRegisterPanel();
+        createMainAppPanel();
+
+        // Start with the login panel
+        cardLayout.show(mainContentPanel, "Login");
+
+        setTitle("Socio-Quest");
+        setSize(800, 600);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    private void createLoginPanel() {
+        loginPanel = new JPanel(new BorderLayout());
+
+        // Custom Image Box - Big Blue Box
+        JPanel imageBoxPanel = new JPanel();
+        imageBoxPanel.setBackground(Color.BLUE);
+        imageBoxPanel.setPreferredSize(new Dimension(200, 200)); // You can add your custom image here
+        loginPanel.add(imageBoxPanel, BorderLayout.NORTH);
+
+        JPanel loginFields = new JPanel(new GridLayout(3, 2, 10, 10));
+        loginFields.setBorder(BorderFactory.createTitledBorder("Login"));
+
+        JLabel usernameLabel = new JLabel("Username:");
+        loginUsernameField = new JTextField(15);  // Reduced field size
+
+        JLabel passwordLabel = new JLabel("Password:");
+        loginPasswordField = new JPasswordField(15);  // Reduced field size
+
+        JButton loginButton = new JButton("Login");
+        loginButton.setBackground(Color.BLUE);
+        loginButton.setForeground(Color.WHITE);
+
+        loginButton.addActionListener(e -> {
+            String username = loginUsernameField.getText();
+            String password = new String(loginPasswordField.getPassword());
+            if (login(username, password)) {
+                cardLayout.show(mainContentPanel, "MainApp");
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid login. Please try again or register.");
+            }
+        });
+
+        JButton goToRegisterButton = new JButton("Not registered? Register here");
+        goToRegisterButton.setBackground(Color.LIGHT_GRAY);
+        goToRegisterButton.setForeground(Color.BLACK);
+
+        goToRegisterButton.addActionListener(e -> {
+            cardLayout.show(mainContentPanel, "Register");
+        });
+
+        loginFields.add(usernameLabel);
+        loginFields.add(loginUsernameField);
+        loginFields.add(passwordLabel);
+        loginFields.add(loginPasswordField);
+        loginFields.add(loginButton);
+        loginFields.add(goToRegisterButton);
+
+        // Add some padding to the login fields panel
+        JPanel paddedFields = new JPanel();
+        paddedFields.setBorder(new EmptyBorder(20, 20, 20, 20));
+        paddedFields.add(loginFields);
+        loginPanel.add(paddedFields, BorderLayout.CENTER);
+
+        mainContentPanel.add(loginPanel, "Login");
+    }
+
+    private void createRegisterPanel() {
+        registerPanel = new JPanel(new BorderLayout());
+
+        JPanel registerFields = new JPanel(new GridLayout(5, 2, 10, 10));
+        registerFields.setBorder(BorderFactory.createTitledBorder("Register"));
+
+        JLabel registerUsernameLabel = new JLabel("Username:");
+        registerUsernameField = new JTextField(15);  // Reduced field size
+
+        JLabel registerEmailLabel = new JLabel("Email:");
+        registerEmailField = new JTextField(15);  // Reduced field size
+
+        JLabel registerPasswordLabel = new JLabel("Password:");
+        registerPasswordField = new JPasswordField(15);  // Reduced field size
+
+        JLabel registerConfirmPasswordLabel = new JLabel("Confirm Password:");
+        registerConfirmPasswordField = new JPasswordField(15);  // Reduced field size
+
+        JButton registerButton = new JButton("Register");
+        registerButton.setBackground(Color.GREEN);
+        registerButton.setForeground(Color.BLACK);
+
+        registerButton.addActionListener(e -> {
+            String username = registerUsernameField.getText();
+            String email = registerEmailField.getText();
+            String password = new String(registerPasswordField.getPassword());
+            String confirmPassword = new String(registerConfirmPasswordField.getPassword());
+
+            if (register(username, password, email, confirmPassword)) {
+                JOptionPane.showMessageDialog(this, "Registration successful! Please log in.");
+                cardLayout.show(mainContentPanel, "Login");
+            }
+        });
+
+        registerFields.add(registerUsernameLabel);
+        registerFields.add(registerUsernameField);
+        registerFields.add(registerEmailLabel);
+        registerFields.add(registerEmailField);
+        registerFields.add(registerPasswordLabel);
+        registerFields.add(registerPasswordField);
+        registerFields.add(registerConfirmPasswordLabel);
+        registerFields.add(registerConfirmPasswordField);
+        registerFields.add(registerButton);
+
+        // Add some padding to the register fields panel
+        JPanel paddedFields = new JPanel();
+        paddedFields.setBorder(new EmptyBorder(20, 20, 20, 20));
+        paddedFields.add(registerFields);
+        registerPanel.add(paddedFields, BorderLayout.CENTER);
+
+        mainContentPanel.add(registerPanel, "Register");
+    }
+
+    private void createMainAppPanel() {
+        JPanel mainAppPanel = new JPanel(new BorderLayout());
+
+        // Side navigation
+        JPanel sideNavPanel = new JPanel(new GridLayout(4, 1));
         sideNavPanel.setBackground(new Color(30, 70, 30));
         sideNavPanel.setBorder(new EmptyBorder(7, 7, 7, 7));
         sideNavPanel.setPreferredSize(new Dimension(120, getHeight()));
-        add(sideNavPanel, BorderLayout.WEST);
+        mainAppPanel.add(sideNavPanel, BorderLayout.WEST);
 
-        // Side navigation buttons
         String[] navOptions = {"Home", "Tasks", "Leaderboard", "Tips"};
         JButton[] navButtons = new JButton[4];
         for (int i = 0; i < navOptions.length; i++) {
@@ -45,13 +187,11 @@ public class MprLayout extends JFrame {
             sideNavPanel.add(navButtons[i]);
         }
 
-        // Main content panel (default is Home)
-        mainContentPanel = new JPanel(new CardLayout());
-        add(mainContentPanel, BorderLayout.CENTER);
+        // Panels for the different sections
+        homePanel = new JPanel();
+        homePanel.add(new JLabel("Welcome to the Home Page"));
+        homePanel.setBackground(Color.LIGHT_GRAY);
 
-        // Initialize panels for each section
-        initHomePanel(); // Initialize the home panel with registration fields
-        initTasksPanel(); // Initialize the tasks panel with task display
         leaderboardPanel = new JPanel();
         leaderboardPanel.add(new JLabel("Leaderboard Coming Soon"));
         leaderboardPanel.setBackground(Color.YELLOW);
@@ -60,137 +200,24 @@ public class MprLayout extends JFrame {
         tipsPanel.add(new JLabel("Tips Page"));
         tipsPanel.setBackground(Color.ORANGE);
 
-        // Add panels to the main content panel (CardLayout)
-        mainContentPanel.add(homePanel, "Home");
-        mainContentPanel.add(tasksPanel, "Tasks");  // Use the scroll pane for tasks
-        mainContentPanel.add(leaderboardPanel, "Leaderboard");
-        mainContentPanel.add(tipsPanel, "Tips");
+        initTasksPanel();
 
-        // Action listeners for navigation buttons
-        navButtons[0].addActionListener(e -> switchPanel("Home"));
-        navButtons[1].addActionListener(e -> switchPanel("Tasks"));
-        navButtons[2].addActionListener(e -> switchPanel("Leaderboard"));
-        navButtons[3].addActionListener(e -> switchPanel("Tips"));
+        // Main content panel (CardLayout for different sections)
+        JPanel mainContent = new JPanel(new CardLayout());
+        mainAppPanel.add(mainContent, BorderLayout.CENTER);
 
-        // Bottom panel for points and progress
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setLayout(new BorderLayout());
-        bottomPanel.setBackground(new Color(240, 240, 240));
-        bottomPanel.setPreferredSize(new Dimension(getWidth(), 30));
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+        mainContent.add(homePanel, "Home");
+        mainContent.add(tasksPanel, "Tasks");
+        mainContent.add(leaderboardPanel, "Leaderboard");
+        mainContent.add(tipsPanel, "Tips");
 
-        // Points label
-        pointsLabel = new JLabel("Total Points: 0");
-        pointsLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        bottomPanel.add(pointsLabel, BorderLayout.EAST);
+        // Button listeners for switching between sections
+        navButtons[0].addActionListener(e -> switchPanel(mainContent, "Home"));
+        navButtons[1].addActionListener(e -> switchPanel(mainContent, "Tasks"));
+        navButtons[2].addActionListener(e -> switchPanel(mainContent, "Leaderboard"));
+        navButtons[3].addActionListener(e -> switchPanel(mainContent, "Tips"));
 
-        // Add the bottom panel to the frame
-        add(bottomPanel, BorderLayout.SOUTH);
-
-        // Frame settings
-        setTitle("Socio-Quest");
-        setSize(800, 600);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // Initialize task categories
-        easyTasks = new ArrayList<>();
-        mediumTasks = new ArrayList<>();
-        hardTasks = new ArrayList<>();
-
-        // Add tasks
-        addTask("Use less water for a week", "+20 points", "Easy");
-        addTask("Plant a tree", "+50 points", "Medium");
-        addTask("Use public transport", "+15 points", "Easy");
-        addTask("Walk 8,000 steps daily", "+50 points", "Hard");
-        addTask("Maintain the planted tree", "+30 points", "Medium");
-        addTask("Help an animal", "+50 points", "Hard");
-
-        // Add difficulty dropdown
-        JPanel difficultyPanel = new JPanel();
-        String[] difficultyLevels = {"Easy", "Medium", "Hard"};
-        difficultyDropdown = new JComboBox<>(difficultyLevels);
-        difficultyPanel.add(new JLabel("Select Difficulty: "));
-        difficultyPanel.add(difficultyDropdown);
-        tasksPanel.add(difficultyPanel, BorderLayout.NORTH); // Add dropdown at the top of tasksPanel
-
-        // Add action listener for dropdown
-        difficultyDropdown.addActionListener(e -> {
-            String selectedDifficulty = (String) difficultyDropdown.getSelectedItem();
-            showTasksByDifficulty(selectedDifficulty);
-        });
-
-        // Show the default (easy) tasks on entering the task panel
-        showTasksByDifficulty("Easy");
-    }
-
-    private void initHomePanel() {
-        homePanel = new JPanel();
-        homePanel.setBackground(Color.LIGHT_GRAY);
-        homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
-
-        JLabel titleLabel = new JLabel("Register");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel emailLabel = new JLabel("Email");
-        emailLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JTextField emailField = new JTextField(10);
-        emailField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JLabel userIdLabel = new JLabel("UserID");
-        userIdLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JTextField userIdField = new JTextField(10);
-        JLabel passwordLabel = new JLabel("Password");
-        passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JPasswordField passwordField = new JPasswordField(10);
-        JLabel confirmPasswordLabel = new JLabel("Confirm Password");
-        confirmPasswordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JPasswordField confirmPasswordField = new JPasswordField(10);
-        
-        emailField.setPreferredSize(new Dimension(100, 3));
-        userIdField.setPreferredSize(new Dimension(100, 25));
-        passwordField.setPreferredSize(new Dimension(100, 25));
-        confirmPasswordField.setPreferredSize(new Dimension(100, 25));
-        
-        JButton registerButton = new JButton("Register");
-        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        registerButton.addActionListener(e -> {
-            String email = emailField.getText();
-            String userId = userIdField.getText();
-            String password = new String(passwordField.getPassword());
-            String confirmPassword = new String(confirmPasswordField.getPassword());
-            
-            if (validateRegistration(email, userId, password, confirmPassword)) {
-                JOptionPane.showMessageDialog(this, "Registration Successful");
-            } else {
-                JOptionPane.showMessageDialog(this, "Error: Check your inputs");
-            }
-        });
-
-        homePanel.add(titleLabel);
-        homePanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        homePanel.add(emailLabel);
-        homePanel.add(emailField);
-        homePanel.add(userIdLabel);
-        homePanel.add(userIdField);
-        homePanel.add(passwordLabel);
-        homePanel.add(passwordField);
-        homePanel.add(confirmPasswordLabel);
-        homePanel.add(confirmPasswordField);
-        homePanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        homePanel.add(registerButton);
-    }
-
-    private boolean validateRegistration(String email, String userId, String password, String confirmPassword) {
-        // Simple validation logic for registration
-        if (email.isEmpty() || userId.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-            return false;
-        }
-        if (!password.equals(confirmPassword)) {
-            return false;
-        }
-        return true;
+        mainContentPanel.add(mainAppPanel, "MainApp");
     }
 
     private void initTasksPanel() {
@@ -198,45 +225,84 @@ public class MprLayout extends JFrame {
         tasksPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         tasksPanel.setBackground(new Color(245, 245, 245));
 
-        // Create a JScrollPane for the tasks panel
         tasksScrollPane = new JScrollPane();
         tasksScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         tasksScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         tasksScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
-        // Inner task display panel with BoxLayout for vertical task layout
         taskDisplayPanel = new JPanel();
-        taskDisplayPanel.setLayout(new BoxLayout(taskDisplayPanel, BoxLayout.Y_AXIS));  // For vertical task layout
-        tasksScrollPane.setViewportView(taskDisplayPanel); // Set taskDisplayPanel inside the JScrollPane
+        taskDisplayPanel.setLayout(new BoxLayout(taskDisplayPanel, BoxLayout.Y_AXIS));
+        tasksScrollPane.setViewportView(taskDisplayPanel);
 
-        // Add the task panel to the center of the tasksPanel
         tasksPanel.add(tasksScrollPane, BorderLayout.CENTER);
+
+        JPanel taskFilterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        taskFilterPanel.setBackground(new Color(220, 220, 220));
+
+        JLabel filterLabel = new JLabel("Filter by Difficulty:");
+        filterLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        taskFilterPanel.add(filterLabel);
+
+        difficultyDropdown = new JComboBox<>(new String[]{"Easy", "Medium", "Hard"});
+        difficultyDropdown.addActionListener(e -> showTasksByDifficulty((String) difficultyDropdown.getSelectedItem()));
+        taskFilterPanel.add(difficultyDropdown);
+
+        tasksPanel.add(taskFilterPanel, BorderLayout.NORTH);
+
+        easyTasks = new ArrayList<>();
+        mediumTasks = new ArrayList<>();
+        hardTasks = new ArrayList<>();
+
+        // Sample tasks
+        addTask("Use less water for a week", "+20 points", "Easy");
+        addTask("Plant a tree", "+50 points", "Medium");
+        addTask("Walk 8,000 steps daily", "+50 points", "Hard");
+        addTask("Help an animal", "+50 points", "Hard");
+
+        showTasksByDifficulty("Easy");
     }
 
-    private void switchPanel(String panelName) {
-        CardLayout cl = (CardLayout) (mainContentPanel.getLayout());
-        cl.show(mainContentPanel, panelName);
+    private boolean login(String username, String password) {
+        return username.equals(registeredUsername) && password.equals(registeredPassword);
+    }
+
+    private boolean register(String username, String password, String email, String confirmPassword) {
+        if (username.isEmpty() || password.isEmpty() || email.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Fields cannot be empty!");
+            return false;
+        }
+        if (!password.equals(confirmPassword)) {
+            JOptionPane.showMessageDialog(this, "Passwords do not match!");
+            return false;
+        }
+
+        // Simulate saving user data
+        registeredUsername = username;
+        registeredPassword = password;
+        return true;
+    }
+
+    private void switchPanel(JPanel panel, String name) {
+        CardLayout cl = (CardLayout) (panel.getLayout());
+        cl.show(panel, name);
     }
 
     private void addTask(String taskTitle, String pointsText, String difficulty) {
         JPanel taskCard = new JPanel();
-        taskCard.setLayout(new BoxLayout(taskCard, BoxLayout.Y_AXIS)); // Flexible layout
+        taskCard.setLayout(new BoxLayout(taskCard, BoxLayout.Y_AXIS));
         taskCard.setBackground(Color.WHITE);
         taskCard.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 2));
 
-        // Task title
         JLabel taskLabel = new JLabel(taskTitle);
         taskLabel.setFont(new Font("Arial", Font.BOLD, 16));
         taskLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
         taskCard.add(taskLabel);
 
-        // Points label
         JLabel taskPointsLabel = new JLabel(pointsText);
         taskPointsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         taskPointsLabel.setBorder(new EmptyBorder(0, 10, 10, 10));
         taskCard.add(taskPointsLabel);
 
-        // Complete button
         JButton completeButton = new JButton("Complete Task");
         completeButton.setBackground(new Color(60, 179, 113));
         completeButton.setForeground(Color.WHITE);
@@ -246,7 +312,6 @@ public class MprLayout extends JFrame {
         completeButton.addActionListener(e -> completeTask(taskCard, pointsText));
         taskCard.add(completeButton);
 
-        // Categorize task based on difficulty
         switch (difficulty) {
             case "Easy":
                 easyTasks.add(taskCard);
@@ -261,7 +326,7 @@ public class MprLayout extends JFrame {
     }
 
     private void showTasksByDifficulty(String difficulty) {
-        taskDisplayPanel.removeAll();  // Clear the current tasks
+        taskDisplayPanel.removeAll();
         switch (difficulty) {
             case "Easy":
                 for (JPanel task : easyTasks) {
