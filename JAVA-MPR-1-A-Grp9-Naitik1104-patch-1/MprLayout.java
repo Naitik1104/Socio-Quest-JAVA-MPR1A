@@ -57,12 +57,7 @@ public class MprLayout extends JFrame {
                 
                 // Collect data in the database whenever a user logs in
                 String insertLoginData = "INSERT INTO login_history (username, login_time) VALUES (?, NOW())";
-                try (PreparedStatement insertStatement = connection.prepareStatement(insertLoginData)) {
-                    insertStatement.setString(1, username);
-                    insertStatement.executeUpdate();
-                } catch (SQLException e) {
-                    JOptionPane.showMessageDialog(this, "Error recording login data: " + e.getMessage());
-                }
+                
 
                 switchPanel("MainApp");
                 return true;
