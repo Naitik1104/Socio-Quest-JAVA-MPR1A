@@ -2,6 +2,11 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,24 +55,23 @@ public class TasksPanel extends JPanel {
         mediumTasks = new ArrayList<>();
         hardTasks = new ArrayList<>();
 
-        addTask("Pick up litter in your local park" , "+20 questpoints", "Easy");
-            addTask("Use public transport for a week.", "+20 questpoints", "Easy");
-            addTask("Use less than 3 litters of water for bathing/washing/cleaning purposes.", "+30 questpoints", "Easy");
-            addTask("Feed local animals in your area", "+30 questpoints", "Easy");
-            addTask("Reuse your plastic bag/bottle or any other substance.", "+30 questpoints", "Easy");
-            addTask("Educate 5 people about recycling", "+40 questpoints", "Medium");
-            addTask("Donate clothes to a local charity", "+40 questpoints", "Medium");
-            addTask("Host sustainabilty workshops", "+50 questpoints", "Medium");
-            addTask("Clean a public area.", "+50 questpoints", "Medium");
-            addTask("Organise a small tree plantation drive in your area", "+60 questpoints", "Medium");
-            addTask("Use public transport for a month", "+40 questpoints", "Medium");
-            addTask("Start a local environment awareness campaign", "+70 questpoints", "Hard");
-            addTask("Set up a compost system in your neighbourhood", "+80 questpoints", "Hard");
-            addTask("Organize a charity fundraiser for an eco-cause", "+90 questpoints", "Hard");
-            addTask("Organize a community cleanup event", "+80 questpoints", "Hard");
-            addTask("Zero waste challenge for a week", "+70 questpoints", "Hard");
-            addTask("Renewable Energy Initiative(Setup a solar power plant in your neighbourhood)", "+150 questpoints", "Hard");
-        
+        addTask("Pick up litter in your local park", "+20 questpoints", "Easy");
+        addTask("Use public transport for a week.", "+20 questpoints", "Easy");
+        addTask("Use less than 3 liters of water for bathing/washing/cleaning purposes.", "+30 questpoints", "Easy");
+        addTask("Feed local animals in your area", "+30 questpoints", "Easy");
+        addTask("Reuse your plastic bag/bottle or any other substance.", "+30 questpoints", "Easy");
+        addTask("Educate 5 people about recycling", "+40 questpoints", "Medium");
+        addTask("Donate clothes to a local charity", "+40 questpoints", "Medium");
+        addTask("Host sustainability workshops", "+50 questpoints", "Medium");
+        addTask("Clean a public area.", "+50 questpoints", "Medium");
+        addTask("Organize a small tree plantation drive in your area", "+60 questpoints", "Medium");
+        addTask("Use public transport for a month", "+40 questpoints", "Medium");
+        addTask("Start a local environment awareness campaign", "+70 questpoints", "Hard");
+        addTask("Set up a compost system in your neighborhood", "+80 questpoints", "Hard");
+        addTask("Organize a charity fundraiser for an eco-cause", "+90 questpoints", "Hard");
+        addTask("Organize a community cleanup event", "+80 questpoints", "Hard");
+        addTask("Zero waste challenge for a week", "+70 questpoints", "Hard");
+        addTask("Renewable Energy Initiative(Setup a solar power plant in your neighborhood)", "+150 questpoints", "Hard");
 
         showTasksByDifficulty("Easy");
 
@@ -167,17 +171,46 @@ public class TasksPanel extends JPanel {
         submitButton.addActionListener(e -> {
             if (uploadedImage != null) {
                 int questpointsToAdd = Integer.parseInt(questpointsText.replaceAll("[^0-9]", ""));
-                mainAppPanel.addquestpoints(questpointsToAdd); // Update questpoints in MainAppPanel
+                mainAppPanel.addquestpoints(questpointsToAdd);
                 questpoints += questpointsToAdd;
                 questpointsTrackerLabel.setText("Total questpoints: " + questpoints);
+                saveImageToDatabase(taskCard, questpointsText);
                 taskCard.setEnabled(false);
                 dialog.dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "Please upload an image to complete the task.");
+                JOptionPane.showMessageDialog(dialog, "Please upload an image before submitting.");
             }
         });
 
         buttonPanel.add(submitButton);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
+    }
+
+    private void saveImageToDatabase(JPanel taskCard, String questpointsText) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String task = ((JLabel) taskCard.getComponent(0)).getText();
+            int userID = mainAppPanel.getUserID();  
+            String username = mainAppPanel.getUsername();  
+
+            
+            byte[] imageBytes = new byte[(int) uploadedImage.length()];
+            try (FileInputStream fis = new FileInputStream(uploadedImage)) {
+                fis.read(imageBytes);
+            }
+
+            String sql = "INSERT INTO imagedata (userID, username, task, image) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, userID);
+                pstmt.setString(2, username);
+                pstmt.setString(3, task);
+                pstmt.setBytes(4, imageBytes);
+                pstmt.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Image submitted successfully!");
+            }
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error saving image: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

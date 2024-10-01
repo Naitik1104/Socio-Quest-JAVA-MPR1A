@@ -1,10 +1,15 @@
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class MainAppPanel extends JPanel {
 
     private JPanel homePanel, tasksPanel, leaderboardPanel, tipsPanel, rewardsPanel, redeemPanel;
     private JLabel questpointsLabel;
+    private String username;
+private int userId;	
     private int questpoints = 0;
     private MprLayout parentLayout;
 
@@ -36,9 +41,9 @@ public class MainAppPanel extends JPanel {
         homePanel = new HomePage();
         tasksPanel = new TasksPanel(this);
         leaderboardPanel = new LeaderboardPanel();
-        tipsPanel = new tipsPanel(); // Adjusted to correct class name
-        rewardsPanel = new Rewards(); // Pass this MainAppPanel instance to Rewards
-        redeemPanel = new REDEEM(); // Ensure this is the correct REDEEM class
+        tipsPanel = new tipsPanel(); 
+        rewardsPanel = new Rewards();
+        redeemPanel = new REDEEM();
 
         JPanel mainContent = new JPanel(new CardLayout());
         add(mainContent, BorderLayout.CENTER);
@@ -48,7 +53,7 @@ public class MainAppPanel extends JPanel {
         mainContent.add(leaderboardPanel, "Leaderboard");
         mainContent.add(tipsPanel, "Tips");
         mainContent.add(rewardsPanel, "Rewards");
-        mainContent.add(redeemPanel, "Redeem"); // Add the REDEEM panel to CardLayout
+        mainContent.add(redeemPanel, "Redeem");
 
         navButtons[0].addActionListener(e -> ((CardLayout) mainContent.getLayout()).show(mainContent, "Home"));
         navButtons[1].addActionListener(e -> ((CardLayout) mainContent.getLayout()).show(mainContent, "Tasks"));
@@ -56,11 +61,45 @@ public class MainAppPanel extends JPanel {
         navButtons[3].addActionListener(e -> ((CardLayout) mainContent.getLayout()).show(mainContent, "Tips"));
         navButtons[4].addActionListener(e -> ((CardLayout) mainContent.getLayout()).show(mainContent, "Rewards"));
     }
+	public void onLoginSuccessful(String username, int loadedQuestpoints) {
+    this.username = username; 
+    this.questpoints = loadedQuestpoints; 
+    questpointsLabel.setText("Total questpoints: " + questpoints);
+}
 
-    
 
-    public void addquestpoints(int questpointsToAdd) {
-        questpoints += questpointsToAdd;
-        questpointsLabel.setText("Total questpoints: " + questpoints);
+   public void addquestpoints(int questpointsToAdd) {
+    if (questpointsToAdd < 0) {
+        JOptionPane.showMessageDialog(this, "Cannot add negative questpoints!");
+        return; // Prevent adding negative questpoints
     }
+
+    questpoints += questpointsToAdd;
+    questpointsLabel.setText("Total questpoints: " + questpoints);
+    System.out.println("Updating questpoints for username: " + username + " with value: " + questpoints);
+    updateQuestPointsInDatabase(username);
+}
+public String getUsername() {
+    return this.username; 
+}
+ public int getUserID() {
+        return userId;
+    }
+
+
+private void updateQuestPointsInDatabase(String username) {
+    Connection connection = DatabaseConnection.getConnection();
+    if (connection != null) {
+        String updateQuery = "UPDATE userinfo SET questpoints = ? WHERE Username = ?";
+        try (PreparedStatement statement = connection.prepareStatement(updateQuery)) {
+            statement.setInt(1, questpoints);
+            statement.setString(2, username); 
+            statement.executeUpdate();
+            System.out.println("Questpoints updated for username: " + username);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
 }
