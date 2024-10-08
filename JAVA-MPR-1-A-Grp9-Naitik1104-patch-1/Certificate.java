@@ -15,24 +15,43 @@ import java.time.format.DateTimeFormatter;
 
 public class Certificate implements Printable {
 
-    private String userName;
-    private int questPoints;
+    private String username;
+    private int questpoints;
     private String dateOfIssue;
     private Image signature;
     private Image logo;
 
-    public Certificate(String userName) {
-        this.userName = userName;
-        this.questPoints = getQuestPointsFromDatabase(userName);
+    public Certificate(String username) {
+        this.username = username;
+        this.questpoints = getQuestpointsFromDatabase(username);
         this.dateOfIssue = LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
+        
+        System.out.println("Username: " + this.username);
+        System.out.println("Quest Points: " + this.questpoints);
+		//System.out.println(new File("signmpr.png").getAbsolutePath());
+
+
         loadImages();
     }
 
     // Load images for signature and logo
     private void loadImages() {
         try {
-            this.signature = ImageIO.read(new File("signature1.png"));
+            this.signature = ImageIO.read(new File("signmpr.png"));
             this.logo = ImageIO.read(new File("logo.png"));
+
+            
+            if (this.signature == null) {
+                System.out.println("Error: Signature image could not be loaded.");
+            } else {
+                System.out.println("Signature image loaded successfully.");
+            }
+
+            if (this.logo == null) {
+                System.out.println("Error: Logo image could not be loaded.");
+            } else {
+                System.out.println("Logo image loaded successfully.");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -72,10 +91,10 @@ public class Certificate implements Printable {
         g2d.drawString("This Certificate is awarded to:", 100, 250);
 
         g2d.setFont(new Font("Serif", Font.BOLD, 42));
-        g2d.drawString(userName, 100, 320);
+        g2d.drawString(this.username, 100, 320);
 
         g2d.setFont(new Font("Serif", Font.PLAIN, 36));
-        g2d.drawString("Quest Points Earned: " + questPoints, 100, 400);
+        g2d.drawString("Quest Points Earned: " + this.questpoints, 100, 400);
         g2d.drawString("Date of Issue: " + dateOfIssue, 100, 470);
 
         // Encouragement text
@@ -115,21 +134,21 @@ public class Certificate implements Printable {
     // Draw signature image with label
     private void drawSignature(Graphics2D g2d, PageFormat pf) {
         if (signature != null) {
-            int signatureWidth = 200;
-            int signatureHeight = 80;
+            int signatureWidth = 100;
+            int signatureHeight = 100;
             int x = (int) pf.getWidth() - signatureWidth - 100;
-            int y = (int) pf.getHeight() - signatureHeight - 100;
+            int y = Math.max(0, (int) pf.getHeight() - signatureHeight - 100);
 
             g2d.drawImage(signature, x, y, signatureWidth, signatureHeight, null);
 
             // Label under the signature
-            g2d.setFont(new Font("Serif", Font.PLAIN, 18));
+            g2d.setFont(new Font("Serif", Font.PLAIN, 11));
             g2d.setColor(Color.BLACK);
             g2d.drawString("Signature of Incharge Authority", x, y + signatureHeight + 20);
         }
     }
 
-    // Print the certificate
+    
     public void printCertificate() {
         PrinterJob job = PrinterJob.getPrinterJob();
         job.setPrintable(this);
@@ -144,17 +163,19 @@ public class Certificate implements Printable {
         }
     }
 
-    // Retrieve quest points from the database for the given username
-    private int getQuestPointsFromDatabase(String userName) {
+    
+    private int getQuestpointsFromDatabase(String username) {
         int points = 0;
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT questpoints FROM userinfo WHERE username = ?";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setString(1, userName);
+                pstmt.setString(1, username);
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
                         points = rs.getInt("questpoints");
+                    } else {
+                        System.out.println("Username not found in the database: " + username);
                     }
                 }
             }
@@ -166,8 +187,11 @@ public class Certificate implements Printable {
     }
 
     public static void main(String[] args) {
-        String userName = "Naitik Mehta";
+        
+        String loggedInUsername = "ab"; 
 
-        new Certificate(userName).printCertificate();
+        
+        Certificate certificate = new Certificate(loggedInUsername);
+        certificate.printCertificate();
     }
 }

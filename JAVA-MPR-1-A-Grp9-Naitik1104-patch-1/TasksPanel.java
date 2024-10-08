@@ -18,8 +18,10 @@ public class TasksPanel extends JPanel {
     private JPanel taskDisplayPanel;
     private JLabel questpointsTrackerLabel;
     private int questpoints = 0;
-    private File uploadedImage = null;
+    
     private MainAppPanel mainAppPanel;
+    private List<File> uploadedImages = new ArrayList<>();
+    private int requiredImages; 
 
     public TasksPanel(MainAppPanel mainAppPanel) {
         this.mainAppPanel = mainAppPanel;
@@ -55,23 +57,24 @@ public class TasksPanel extends JPanel {
         mediumTasks = new ArrayList<>();
         hardTasks = new ArrayList<>();
 
-        addTask("Pick up litter in your local park", "+20 questpoints", "Easy");
-        addTask("Use public transport for a week.", "+20 questpoints", "Easy");
-        addTask("Use less than 3 liters of water for bathing/washing/cleaning purposes.", "+30 questpoints", "Easy");
-        addTask("Feed local animals in your area", "+30 questpoints", "Easy");
-        addTask("Reuse your plastic bag/bottle or any other substance.", "+30 questpoints", "Easy");
-        addTask("Educate 5 people about recycling", "+40 questpoints", "Medium");
-        addTask("Donate clothes to a local charity", "+40 questpoints", "Medium");
-        addTask("Host sustainability workshops", "+50 questpoints", "Medium");
-        addTask("Clean a public area.", "+50 questpoints", "Medium");
-        addTask("Organize a small tree plantation drive in your area", "+60 questpoints", "Medium");
-        addTask("Use public transport for a month", "+40 questpoints", "Medium");
-        addTask("Start a local environment awareness campaign", "+70 questpoints", "Hard");
-        addTask("Set up a compost system in your neighborhood", "+80 questpoints", "Hard");
-        addTask("Organize a charity fundraiser for an eco-cause", "+90 questpoints", "Hard");
-        addTask("Organize a community cleanup event", "+80 questpoints", "Hard");
-        addTask("Zero waste challenge for a week", "+70 questpoints", "Hard");
-        addTask("Renewable Energy Initiative(Setup a solar power plant in your neighborhood)", "+150 questpoints", "Hard");
+        
+        addTask("Pick up litter in your local park", "+20 questpoints", "Easy", 1);
+        addTask("Use public transport for a week.", "+20 questpoints", "Easy", 4);
+        addTask("Use less than 3 liters of water for bathing/washing/cleaning purposes.", "+30 questpoints", "Easy", 1);
+        addTask("Feed local animals in your area", "+30 questpoints", "Easy", 1);
+        addTask("Reuse your plastic bag/bottle or any other substance.", "+30 questpoints", "Easy", 2);
+        addTask("Educate 5 people about recycling", "+40 questpoints", "Medium", 5);
+        addTask("Donate clothes to a local charity", "+40 questpoints", "Medium", 1);
+        addTask("Host sustainability workshops", "+50 questpoints", "Medium", 2);
+        addTask("Clean a public area.", "+50 questpoints", "Medium", 1);
+        addTask("Organize a small tree plantation drive in your area", "+60 questpoints", "Medium", 2);
+        addTask("Use public transport for a month", "+40 questpoints", "Medium", 1);
+        addTask("Start a local environment awareness campaign", "+70 questpoints", "Hard", 2);
+        addTask("Set up a compost system in your neighborhood", "+80 questpoints", "Hard", 2);
+        addTask("Organize a charity fundraiser for an eco-cause", "+90 questpoints", "Hard", 3);
+        addTask("Organize a community cleanup event", "+80 questpoints", "Hard", 1);
+        addTask("Zero waste challenge for a week", "+70 questpoints", "Hard", 1);
+        addTask("Renewable Energy Initiative(Setup a solar power plant in your neighborhood)", "+150 questpoints", "Hard", 3);
 
         showTasksByDifficulty("Easy");
 
@@ -81,7 +84,7 @@ public class TasksPanel extends JPanel {
         add(questpointsTrackerLabel, BorderLayout.SOUTH);
     }
 
-    private void addTask(String taskTitle, String questpointsText, String difficulty) {
+    private void addTask(String taskTitle, String questpointsText, String difficulty, int requiredImages) {
         JPanel taskCard = new JPanel();
         taskCard.setLayout(new BoxLayout(taskCard, BoxLayout.Y_AXIS));
         taskCard.setBackground(Color.WHITE);
@@ -104,7 +107,7 @@ public class TasksPanel extends JPanel {
         completeButton.setFocusPainted(false);
         completeButton.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        completeButton.addActionListener(e -> showImageSubmissionDialog(taskCard, questpointsText));
+        completeButton.addActionListener(e -> showImageSubmissionDialog(taskCard, questpointsText, requiredImages));
         taskCard.add(completeButton);
 
         switch (difficulty) {
@@ -143,23 +146,32 @@ public class TasksPanel extends JPanel {
         taskDisplayPanel.repaint();
     }
 
-    private void showImageSubmissionDialog(JPanel taskCard, String questpointsText) {
+    private void showImageSubmissionDialog(JPanel taskCard, String questpointsText, int requiredImages) {
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Submit Image", true);
         dialog.setLayout(new BorderLayout());
-        dialog.setSize(400, 200);
+        dialog.setSize(400, 250);
         dialog.setLocationRelativeTo(this);
 
-        JLabel instructionLabel = new JLabel("Please submit an image to complete the task:");
+        JLabel instructionLabel = new JLabel("Please submit " + requiredImages + " images to complete the task:");
         instructionLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
         dialog.add(instructionLabel, BorderLayout.NORTH);
 
         JButton uploadButton = new JButton("Upload Image");
         uploadButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setMultiSelectionEnabled(true); 
             int returnValue = fileChooser.showOpenDialog(this);
             if (returnValue == JFileChooser.APPROVE_OPTION) {
-                uploadedImage = fileChooser.getSelectedFile();
-                JOptionPane.showMessageDialog(this, "Image uploaded: " + uploadedImage.getName());
+                File[] selectedFiles = fileChooser.getSelectedFiles();
+                for (File file : selectedFiles) {
+                    uploadedImages.add(file);
+                    JOptionPane.showMessageDialog(this, "Image uploaded: " + file.getName());
+                }
+                
+                if (uploadedImages.size() > requiredImages) {
+                    JOptionPane.showMessageDialog(this, "You have uploaded more images than required. Please upload only " + requiredImages + " images.");
+                    uploadedImages.clear(); 
+                }
             }
         });
 
@@ -169,16 +181,16 @@ public class TasksPanel extends JPanel {
 
         JButton submitButton = new JButton("Submit");
         submitButton.addActionListener(e -> {
-            if (uploadedImage != null) {
+            if (uploadedImages.size() == requiredImages) {
                 int questpointsToAdd = Integer.parseInt(questpointsText.replaceAll("[^0-9]", ""));
                 mainAppPanel.addquestpoints(questpointsToAdd);
                 questpoints += questpointsToAdd;
                 questpointsTrackerLabel.setText("Total questpoints: " + questpoints);
-                saveImageToDatabase(taskCard, questpointsText);
+                saveImagesToDatabase(taskCard, questpointsText); 
                 taskCard.setEnabled(false);
                 dialog.dispose();
             } else {
-                JOptionPane.showMessageDialog(dialog, "Please upload an image before submitting.");
+                JOptionPane.showMessageDialog(dialog, "Please upload exactly " + requiredImages + " images before submitting.");
             }
         });
 
@@ -187,30 +199,39 @@ public class TasksPanel extends JPanel {
         dialog.setVisible(true);
     }
 
-    private void saveImageToDatabase(JPanel taskCard, String questpointsText) {
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            String task = ((JLabel) taskCard.getComponent(0)).getText();
-            int userID = mainAppPanel.getUserID();  
-            String username = mainAppPanel.getUsername();  
+    private void saveImagesToDatabase(JPanel taskCard, String questpointsText) {
+    try (Connection conn = DatabaseConnection.getConnection()) {
+        String task = ((JLabel) taskCard.getComponent(0)).getText();
+        int userID = mainAppPanel.getUserID();  
+        String username = mainAppPanel.getUsername();  
 
-            
-            byte[] imageBytes = new byte[(int) uploadedImage.length()];
-            try (FileInputStream fis = new FileInputStream(uploadedImage)) {
-                fis.read(imageBytes);
-            }
-
-            String sql = "INSERT INTO imagedata (userID, username, task, image) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        
+        String sql = "INSERT INTO imagedata (userID, username, task, image) VALUES (?, ?, ?, ?)";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (File imageFile : uploadedImages) {
+                byte[] imageBytes = new byte[(int) imageFile.length()];
+                try (FileInputStream fis = new FileInputStream(imageFile)) {
+                    fis.read(imageBytes);
+                }
                 pstmt.setInt(1, userID);
                 pstmt.setString(2, username);
                 pstmt.setString(3, task);
                 pstmt.setBytes(4, imageBytes);
-                pstmt.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Image submitted successfully!");
+                pstmt.addBatch(); 
             }
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error saving image: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            pstmt.executeBatch(); 
+            JOptionPane.showMessageDialog(this, "Images submitted successfully!");
         }
+    } catch (SQLException | IOException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error saving images: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+
+    public void addQuestpoints(int points) {
+        questpoints += points;
+        questpointsTrackerLabel.setText("Total questpoints: " + questpoints);
     }
 }

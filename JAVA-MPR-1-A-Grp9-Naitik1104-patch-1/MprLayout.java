@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import java.awt.*;
 import java.sql.Connection;
@@ -43,35 +44,35 @@ public class MprLayout extends JFrame {
     }
 
     public boolean login(String username, String password) {
-    String query = "SELECT * FROM userinfo WHERE username = ? AND password = ?";
-    try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-        preparedStatement.setString(1, username);
-        preparedStatement.setString(2, password);
-        try (ResultSet resultSet = preparedStatement.executeQuery()) {
-            if (resultSet.next()) {
-                int loggedInUserID = resultSet.getInt("UserID");
-                int loadedQuestpoints = resultSet.getInt("Questpoints");
+        String query = "SELECT * FROM userinfo WHERE username = ? AND password = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, password);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    loggedInUserID = resultSet.getInt("UserID"); // Store the UserID if needed
+                    this.username = resultSet.getString("username"); // Store the logged-in username
+                    int loadedquestpoints = resultSet.getInt("questpoints");
 
-                JOptionPane.showMessageDialog(this, "Login successful!");
-                mainAppPanel.onLoginSuccessful(username, loadedQuestpoints); 
+                    JOptionPane.showMessageDialog(this, "Login successful!");
+                    mainAppPanel.onLoginSuccessful(this.username, loadedquestpoints); 
 
-                
-                String updateLoginTimeQuery = "UPDATE userinfo SET last_login_time = NOW() WHERE Username = ?";
-                try (PreparedStatement updateStatement = connection.prepareStatement(updateLoginTimeQuery)) {
-                    updateStatement.setString(1, username); 
-                    updateStatement.executeUpdate();
+                    String updateLoginTimeQuery = "UPDATE userinfo SET last_login_time = NOW() WHERE Username = ?";
+                    try (PreparedStatement updateStatement = connection.prepareStatement(updateLoginTimeQuery)) {
+                        updateStatement.setString(1, username); 
+                        updateStatement.executeUpdate();
+                    }
+
+                    switchPanel("MainApp");
+                    return true;
                 }
-
-                switchPanel("MainApp");
-                return true;
             }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage());
         }
-    } catch (SQLException e) {
-        JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage());
+        JOptionPane.showMessageDialog(this, "Invalid credentials. Please try again.");
+        return false;
     }
-    JOptionPane.showMessageDialog(this, "Invalid credentials. Please try again.");
-    return false;
-}
 
 
 
@@ -126,6 +127,10 @@ public class MprLayout extends JFrame {
     public String getUsername() {
         return username;
     }
+	public int getquestpoints() {
+    return mainAppPanel.getquestpoints(); // Get questpoints from MainAppPanel
+}
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

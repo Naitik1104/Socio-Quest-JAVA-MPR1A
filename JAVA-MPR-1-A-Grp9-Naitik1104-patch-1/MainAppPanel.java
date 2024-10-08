@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import java.awt.*;
 import java.sql.Connection;
@@ -61,10 +62,11 @@ private int userId;
         navButtons[3].addActionListener(e -> ((CardLayout) mainContent.getLayout()).show(mainContent, "Tips"));
         navButtons[4].addActionListener(e -> ((CardLayout) mainContent.getLayout()).show(mainContent, "Rewards"));
     }
-	public void onLoginSuccessful(String username, int loadedQuestpoints) {
+	public void onLoginSuccessful(String username, int loadedquestpoints) {
     this.username = username; 
-    this.questpoints = loadedQuestpoints; 
+    this.questpoints = loadedquestpoints; 
     questpointsLabel.setText("Total questpoints: " + questpoints);
+	Certificate certificate = new Certificate(username);
 }
 
 
@@ -77,7 +79,7 @@ private int userId;
     questpoints += questpointsToAdd;
     questpointsLabel.setText("Total questpoints: " + questpoints);
     System.out.println("Updating questpoints for username: " + username + " with value: " + questpoints);
-    updateQuestPointsInDatabase(username);
+    updatequestpointsInDatabase(username);
 }
 public String getUsername() {
     return this.username; 
@@ -85,9 +87,14 @@ public String getUsername() {
  public int getUserID() {
         return userId;
     }
+	public int getquestpoints() {
+    return questpoints;
+}
 
 
-private void updateQuestPointsInDatabase(String username) {
+
+
+private void updatequestpointsInDatabase(String username) {
     Connection connection = DatabaseConnection.getConnection();
     if (connection != null) {
         String updateQuery = "UPDATE userinfo SET questpoints = ? WHERE Username = ?";
@@ -95,7 +102,7 @@ private void updateQuestPointsInDatabase(String username) {
             statement.setInt(1, questpoints);
             statement.setString(2, username); 
             statement.executeUpdate();
-            System.out.println("Questpoints updated for username: " + username);
+            System.out.println("questpoints updated for username: " + username);
         } catch (SQLException e) {
             e.printStackTrace();
         }

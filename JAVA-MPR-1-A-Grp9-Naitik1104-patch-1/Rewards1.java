@@ -118,9 +118,9 @@ public class Rewards1 extends JPanel {
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {                                         
         String userName = "Naitik Mehta";  
-        int questquestpoints = 150; 
+        int questpoints = 150; 
     
-        Certificate certificate = new Certificate(userName, questquestpoints);
+        Certificate certificate = new Certificate(userName);
         certificate.printCertificate();
     }                                        
 
